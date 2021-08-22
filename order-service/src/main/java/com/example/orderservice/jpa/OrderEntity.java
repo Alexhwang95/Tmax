@@ -12,15 +12,18 @@ import java.util.Date;
 @Table(name="orders")
 public class OrderEntity implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private long id;
 
-    @Column(nullable = false, length = 120, unique = true)
+    @Column(nullable = false, length = 120)
     private String productId;
+
     @Column(nullable = false)
     private Integer qty;
+
     @Column(nullable = false)
     private Integer unitPrice;
+
     @Column(nullable = false)
     private Integer totalPrice;
 
@@ -30,6 +33,9 @@ public class OrderEntity implements Serializable {
     private String orderId;
 
     @Column(nullable = false, updatable = false, insertable = false)
-    @ColumnDefault(value = "CURRENT_TIMESTAMP")
+    @ColumnDefault(value="CURRENT_TIMESTAMP")
     private Date createdAt;
+
+    @Column(nullable = false)
+    private String instanceId;
 }

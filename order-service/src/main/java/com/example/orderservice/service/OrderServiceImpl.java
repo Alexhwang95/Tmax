@@ -1,50 +1,77 @@
 package com.example.orderservice.service;
 
+
 import com.example.orderservice.dto.OrderDto;
 import com.example.orderservice.jpa.OrderEntity;
 import com.example.orderservice.jpa.OrderRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
-public class OrderServiceImpl implements OrderService {
-    OrderRepository orderRepository;
+public class OrderServiceImpl implements OrderService{
+    OrderRepository repository;
+    Environment env;
 
     @Autowired
-    public OrderServiceImpl(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
+    public OrderServiceImpl(OrderRepository repository,
+                            Environment env) {
+        this.repository = repository;
+        this.env = env;
     }
 
     @Override
-    public OrderDto createOrder(OrderDto orderDto) {
-        orderDto.setOrderId(UUID.randomUUID().toString());
-        orderDto.setTotalPrice(orderDto.getQty() * orderDto.getUnitPrice());
+    public OrderDto createOrder(OrderDto orderDetail) {
+        orderDetail.setOrderId(UUID.randomUUID().toString());
+        orderDetail.setTotalPrice(orderDetail.getQty() * orderDetail.getUnitPrice());
+        System.out.println(env.getProperty("eureka.instance.instance-id"));
+        System.out.println(env.getProperty("server.port"));
+        orderDetail.setInstanceId(env.getProperty("eureka.instance.instance-id"));
 
-        ModelMapper mapper = new ModelMapper();
-        mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        OrderEntity orderEntity = mapper.map(orderDto, OrderEntity.class);
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 
-        orderRepository.save(orderEntity);
+        OrderEntity orderEntity = modelMapper.map(orderDetail, OrderEntity.class);
 
-        OrderDto returnValue = mapper.map(orderEntity, OrderDto.class);
+        repository.save(orderEntity);
+
+        OrderDto returnValue = modelMapper.map(orderEntity, OrderDto.class);
 
         return returnValue;
     }
 
     @Override
     public OrderDto getOrderByOrderId(String orderId) {
-        OrderEntity orderEntity = orderRepository.findByOrderId(orderId);
+        OrderEntity orderEntity = repository.findByOrderId(orderId);
         OrderDto orderDto = new ModelMapper().map(orderEntity, OrderDto.class);
-
         return orderDto;
     }
 
     @Override
-    public Iterable<OrderEntity> getOrdersByUserId(String userId) {
-        return orderRepository.findByUserId(userId);
+    public Iterable<OrderEntity> getOrderByUserId(String userId) {
+        return repository.findByUserId(userId);
+    }
+
+    @Override
+    public OrderDto updateOrder(OrderDto orderDetail) {
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+
+        OrderEntity orderEntity = repository.findByOrderId(orderDetail.getOrderId());
+        OrderDto orderDto = modelMapper.map(orderEntity, OrderDto.class);
+        orderDto.setQty(orderDetail.getQty());
+        orderDto.setUnitPrice(orderDetail.getUnitPrice());
+        orderDto.setTotalPrice(orderDetail.getQty() * orderDetail.getUnitPrice());
+        orderDto.setUserId(orderDetail.getUserId());
+
+        orderEntity = modelMapper.map(orderDto, OrderEntity.class);
+
+        repository.save(orderEntity);
+
+        return orderDto;
     }
 }

@@ -1,14 +1,15 @@
 server:
-  port: 50001
+  port: 0
+  #address: 127.0.0.1
 
 spring:
   application:
     name: user-service
-  rabbitmq:
-    host: 127.0.0.1
-    port: 5672
-    username: guest
-    password: guest
+#  rabbitmq:
+#    host: 127.0.0.1
+#    port: 5672
+#    username: daramg
+#    password: 1234
   h2:
     console:
       enabled: true
@@ -23,21 +24,24 @@ spring:
 
 eureka:
   client:
-    fetch-registry: true
     register-with-eureka: true
+    fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka
   instance:
     instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
+    #prefer-ip-address: true
+    #ip-address: ${server.address}
 
 greeting:
-  message: Welcome to the simple E-commerce.
+  message: Welcome to the Simple E-Commerce
 
 #token:
 #  expiration_time: 864000000
 #  secret: user_token
+
 management:
   endpoints:
     web:
       exposure:
-        include: info,refresh,health,beans,busrefresh
+        include: info, refresh, health, beans, busrefresh
